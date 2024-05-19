@@ -133,7 +133,7 @@ const std::vector<uint16_t> indices = {
     0, 1, 2, 2, 3, 0
 };
 
-class HelloTriangleApplication {
+class VulkanRenderer {
 public:
     void run() {
         initWindow();
@@ -206,7 +206,7 @@ private:
     }
 
     static void framebufferResizeCallback(GLFWwindow* window, int width, int height) {
-        auto app = reinterpret_cast<HelloTriangleApplication*>(glfwGetWindowUserPointer(window));
+        auto app = reinterpret_cast<VulkanRenderer*>(glfwGetWindowUserPointer(window));
         app->framebufferResized = true;
     }
 
@@ -1500,7 +1500,7 @@ private:
 };
 
 int main() {
-    HelloTriangleApplication app;
+    VulkanRenderer app;
 
     try {
         app.run();
