@@ -4,7 +4,19 @@
 
 3.Particle System
 
+4.Particles from models and particle morphing
+
+
 ---
+# 4.Particles from models and particle morphing
+
+https://github.com/zhuzhanji/VulkanRenderer/assets/37281560/d1f1cbfd-cfeb-466e-be80-01404251bb1f
+
+
+https://github.com/zhuzhanji/VulkanRenderer/assets/37281560/df66fd4f-4e7d-482b-bbfe-87d1c0d77ff5
+
+
+
 # 1.Generalized Kuwahara Filter rendered in two viewports
 
   - left (radius = 6 pixels), right (radius = 12 pixels)
