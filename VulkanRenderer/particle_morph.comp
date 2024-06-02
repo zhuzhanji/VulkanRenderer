@@ -1,0 +1,41 @@
+#version 450
+
+struct Particle {
+	vec4 positionSrc;
+    vec4 positionDst;
+    vec4 color;
+    vec4 parameter;
+};
+
+struct CurrentParticle {
+    vec4 position;
+    vec4 color;
+};
+
+layout (binding = 0) uniform ParameterUBO {
+    float time;
+    int particle_count;
+} ubo;
+
+layout(std140, binding = 1) readonly buffer ParticleSSBOIn1 {
+   Particle particlesIn[ ];
+};
+
+layout(std140, binding = 2) buffer ParticleSSBOOut {
+   CurrentParticle particlesOut[ ];
+};
+
+layout (local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
+
+void main() 
+{
+    uint index = gl_GlobalInvocationID.x;  
+    if(index >= ubo.particle_count) return;
+    Particle particleIn = particlesIn[index];
+
+    particlesOut[index].position = vec4(particleIn.positionSrc.xyz + sin(ubo.time * particleIn.parameter.z + particleIn.parameter.x) * particleIn.parameter.y * (particleIn.positionDst.xyz - particleIn.positionSrc.xyz), 1);
+    particlesOut[index].position = vec4(mix(particleIn.positionSrc.xyz, particleIn.positionDst.xyz, clamp(sin(ubo.time * particleIn.parameter.z) * 0.8 + 0.5, 0, 1) ), 1);
+    particlesOut[index].color = particleIn.color;
+
+    
+}
