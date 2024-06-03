@@ -4,7 +4,7 @@
 
 3.Particle System
 
-4.Particles from models and particle morphing
+4.Particles from models and particles morphing
 
 
 ---
@@ -14,6 +14,12 @@ https://github.com/zhuzhanji/VulkanRenderer/assets/37281560/d1f1cbfd-cfeb-466e-b
 
 
 https://github.com/zhuzhanji/VulkanRenderer/assets/37281560/df66fd4f-4e7d-482b-bbfe-87d1c0d77ff5
+
+In the above two demos, particles are drawn with GL_POINT, we can replace them with 3D models, like this rock image. Rendering by instancing is very efficient in this cenario.
+
+<img width="378" alt="image" src="https://github.com/zhuzhanji/VulkanRenderer/assets/37281560/a29cf219-0cce-45a3-b5fa-e3c7142f003a">
+
+<img width="791" alt="Screenshot 2024-06-03 at 11 05 36" src="https://github.com/zhuzhanji/VulkanRenderer/assets/37281560/cde23f7d-880a-4397-a1f8-e8a9e5c78bd8">
 
 
 
