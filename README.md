@@ -4,7 +4,7 @@
 
 3.Particle System
 
-4.Particles from models and particles morphing
+4.Particles from shapes and particle instancing
 
 
 ---
