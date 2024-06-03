@@ -33,8 +33,8 @@ void main()
     if(index >= ubo.particle_count) return;
     Particle particleIn = particlesIn[index];
 
-    particlesOut[index].position = vec4(particleIn.positionSrc.xyz + sin(ubo.time * particleIn.parameter.z + particleIn.parameter.x) * particleIn.parameter.y * (particleIn.positionDst.xyz - particleIn.positionSrc.xyz), 1);
-    particlesOut[index].position = vec4(mix(particleIn.positionSrc.xyz, particleIn.positionDst.xyz, clamp(sin(ubo.time * particleIn.parameter.z) * 0.8 + 0.5, 0, 1) ), 1);
+    vec4 position = vec4(mix(particleIn.positionSrc.xyz, particleIn.positionDst.xyz, clamp(sin(ubo.time * particleIn.parameter.z) * 0.9 + 0.5, 0, 1) ), 1);
+    particlesOut[index].position = position;
     particlesOut[index].color = particleIn.color;
 
     

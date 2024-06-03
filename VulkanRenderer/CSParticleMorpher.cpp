@@ -10,7 +10,10 @@
 #include <vulkan/vulkan_beta.h>
 
 #define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
+#include <glm/gtx/hash.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <iostream>
@@ -102,31 +105,62 @@ struct ParticleSource {
 struct ParticleCurrent {
     glm::vec4 position;
     glm::vec4 color;
-    static VkVertexInputBindingDescription getBindingDescription() {
-        VkVertexInputBindingDescription bindingDescription{};
-        bindingDescription.binding = 0;
-        bindingDescription.stride = sizeof(ParticleCurrent);
-        bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-        return bindingDescription;
-    }
-
-    static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions() {
-        std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions{};
-
-        attributeDescriptions[0].binding = 0;
-        attributeDescriptions[0].location = 0;
-        attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-        attributeDescriptions[0].offset = offsetof(ParticleCurrent, position);
-
-        attributeDescriptions[1].binding = 0;
-        attributeDescriptions[1].location = 1;
-        attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-        attributeDescriptions[1].offset = offsetof(ParticleCurrent, color);
-        
-        return attributeDescriptions;
-    }
 };
+
+struct Vertex {
+    glm::vec4 position;
+    glm::vec2 uv;
+};
+
+struct Stone {
+    std::vector<Vertex> vertices;
+    std::vector<uint32_t> indices;
+    
+    VkBuffer vertexBuffer;
+    VkDeviceMemory vertexBufferMemory;
+    VkBuffer indexBuffer;
+    VkDeviceMemory indexBufferMemory;
+};
+
+static std::array<VkVertexInputBindingDescription, 2> getBindingDescription() {
+    VkVertexInputBindingDescription bindingDescriptionVert{};
+    bindingDescriptionVert.binding = 0;
+    bindingDescriptionVert.stride = sizeof(Vertex);
+    bindingDescriptionVert.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+    
+    VkVertexInputBindingDescription bindingDescriptionInstance{};
+    bindingDescriptionInstance.binding = 1;
+    bindingDescriptionInstance.stride = sizeof(ParticleCurrent);
+    bindingDescriptionInstance.inputRate = VK_VERTEX_INPUT_RATE_INSTANCE;
+    
+    return {bindingDescriptionVert, bindingDescriptionInstance};
+}
+
+static std::array<VkVertexInputAttributeDescription, 4> getAttributeDescriptions() {
+    std::array<VkVertexInputAttributeDescription, 4> attributeDescriptions{};
+
+    
+    attributeDescriptions[0].binding = 0;
+    attributeDescriptions[0].location = 0;
+    attributeDescriptions[0].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+    attributeDescriptions[0].offset = offsetof(Vertex, position);
+    attributeDescriptions[1].binding = 0;
+    attributeDescriptions[1].location = 1;
+    attributeDescriptions[1].format = VK_FORMAT_R32G32_SFLOAT;
+    attributeDescriptions[1].offset = offsetof(Vertex, uv);
+    
+    attributeDescriptions[2].binding = 1;
+    attributeDescriptions[2].location = 2;
+    attributeDescriptions[2].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+    attributeDescriptions[2].offset = offsetof(ParticleCurrent, position);
+    attributeDescriptions[3].binding = 1;
+    attributeDescriptions[3].location = 3;
+    attributeDescriptions[3].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+    attributeDescriptions[3].offset = offsetof(ParticleCurrent, color);
+    
+    return attributeDescriptions;
+}
+
 
 class DancingParticles {
 public:
@@ -205,8 +239,11 @@ private:
 
     std::string MODEL_PATH_1 = "models/bunny.obj";
     std::string MODEL_PATH_2 = "models/teapot.obj";
+    std::string MODEL_PATH_3 = "models/rock.obj";
     
     int particle_count;
+    
+    Stone stone;
     
     void initWindow() {
         glfwInit();
@@ -240,6 +277,9 @@ private:
         createComputePipeline();
         createFramebuffers();
         createCommandPool();
+        
+        loadModel();
+        
         createShaderStorageBuffers();
         createUniformBuffers();
         createDescriptorPool();
@@ -303,6 +343,12 @@ private:
             vkDestroyBuffer(device, shaderStorageBuffers[i], nullptr);
             vkFreeMemory(device, shaderStorageBuffersMemory[i], nullptr);
         }
+        
+        vkDestroyBuffer(device, stone.indexBuffer, nullptr);
+        vkFreeMemory(device, stone.indexBufferMemory, nullptr);
+
+        vkDestroyBuffer(device, stone.vertexBuffer, nullptr);
+        vkFreeMemory(device, stone.vertexBufferMemory, nullptr);
         
         vkDestroyBuffer(device, shaderStorageBufferSrc, nullptr);
         vkFreeMemory(device, shaderStorageBufferMemorySrc, nullptr);
@@ -653,7 +699,7 @@ private:
     }
 
     void createGraphicsPipeline() {
-        auto vertShaderCode = readFile("shaders/dancing_particle_vert.spv");
+        auto vertShaderCode = readFile("shaders/particle_morph_vert.spv");
         auto fragShaderCode = readFile("shaders/dancing_particle_frag.spv");
 
         VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);
@@ -676,17 +722,17 @@ private:
         VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
         vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 
-        auto bindingDescription = ParticleCurrent::getBindingDescription();
-        auto attributeDescriptions = ParticleCurrent::getAttributeDescriptions();
+        auto bindingDescription = getBindingDescription();
+        auto attributeDescriptions = getAttributeDescriptions();
 
-        vertexInputInfo.vertexBindingDescriptionCount = 1;
+        vertexInputInfo.vertexBindingDescriptionCount = bindingDescription.size();
         vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
-        vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
+        vertexInputInfo.pVertexBindingDescriptions = bindingDescription.data();
         vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 
         VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
         inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-        inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+        inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         inputAssembly.primitiveRestartEnable = VK_FALSE;
 
         VkPipelineViewportStateCreateInfo viewportState{};
@@ -839,7 +885,77 @@ private:
             throw std::runtime_error("failed to create graphics command pool!");
         }
     }
+    
+    void loadModel(){
+        
+        tinyobj::attrib_t attrib;
+        std::vector<tinyobj::shape_t> shapes;
+        std::vector<tinyobj::material_t> materials;
+        std::string warn, err;
+        if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, MODEL_PATH_3.c_str())) {
+            throw std::runtime_error(warn + err);
+        }
+        
+        std::unordered_map<glm::vec3, uint32_t> uniqueVertices{};
+        
+        for (const auto& shape : shapes) {
+            for (const auto& index : shape.mesh.indices) {
+                Vertex vertex{};
+                vertex.position = {
+                    attrib.vertices[3 * index.vertex_index + 0] * 0.005,
+                    attrib.vertices[3 * index.vertex_index + 1] * 0.005,
+                    attrib.vertices[3 * index.vertex_index + 2] * 0.005, 1.0
+                };
+                vertex.uv = {
+                    attrib.texcoords[2 * index.texcoord_index + 0],
+                    1.0f - attrib.texcoords[2 * index.texcoord_index + 1]
+                };
+                
+                if (uniqueVertices.count(vertex.position) == 0) {
+                    uniqueVertices[vertex.position] = static_cast<uint32_t>(stone.vertices.size());
+                    stone.vertices.push_back(vertex);
+                }
+                stone.indices.push_back(uniqueVertices[vertex.position]);
+            }
+        }
+        //create vertex buffer
+        {
+            VkDeviceSize bufferSize = sizeof(stone.vertices[0]) * stone.vertices.size();
+            
+            VkBuffer stagingBuffer;
+            VkDeviceMemory stagingBufferMemory;
+            createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+            void* data;
+            vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
+            memcpy(data, stone.vertices.data(), (size_t) bufferSize);
+            vkUnmapMemory(device, stagingBufferMemory);
+            createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, stone.vertexBuffer, stone.vertexBufferMemory);
+            copyBuffer(stagingBuffer, stone.vertexBuffer, bufferSize);
+            vkDestroyBuffer(device, stagingBuffer, nullptr);
+            vkFreeMemory(device, stagingBufferMemory, nullptr);
+        }
+        //create index buffer
+        {
+            VkDeviceSize bufferSize = sizeof(stone.indices[0]) * stone. indices.size();
 
+            VkBuffer stagingBuffer;
+            VkDeviceMemory stagingBufferMemory;
+            createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+
+            void* data;
+            vkMapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
+            memcpy(data, stone.indices.data(), (size_t) bufferSize);
+            vkUnmapMemory(device, stagingBufferMemory);
+
+            createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, stone.indexBuffer, stone.indexBufferMemory);
+
+            copyBuffer(stagingBuffer, stone.indexBuffer, bufferSize);
+
+            vkDestroyBuffer(device, stagingBuffer, nullptr);
+            vkFreeMemory(device, stagingBufferMemory, nullptr);
+        }
+    }
+    
     void createShaderStorageBuffers() {
         std::vector<ParticleSource> particles;
         tinyobj::attrib_t attrib;
@@ -919,7 +1035,7 @@ private:
         for(int i = 0; i < particle_count; i++)
         {
             particles[i].color = glm::vec4(rndDist(rndEngine), rndDist(rndEngine), rndDist(rndEngine), 1.0);
-            particles[i].parameter = glm::vec4(0, rndDist(rndEngine) * 0.02, 2, 0);
+            particles[i].parameter = glm::vec4(0, rndDist(rndEngine) * 0.02, 1.5, 0);
         }
         
         for(int i = count; i < particle_count; i++){
@@ -1237,11 +1353,14 @@ private:
             vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
             VkDeviceSize offsets[] = {0};
-            vkCmdBindVertexBuffers(commandBuffer, 0, 1, &shaderStorageBuffers[currentFrame], offsets);
+            vkCmdBindVertexBuffers(commandBuffer, 0, 1, &stone.vertexBuffer, offsets);
+        
+            vkCmdBindVertexBuffers(commandBuffer, 1, 1, &shaderStorageBuffers[currentFrame], offsets);
+            vkCmdBindIndexBuffer(commandBuffer, stone.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
             vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
 
         
-            vkCmdDraw(commandBuffer, particle_count, 1, 0, 0);
+            vkCmdDrawIndexed(commandBuffer, stone.indices.size(), particle_count, 0, 0, 0);
 
         vkCmdEndRenderPass(commandBuffer);
 
@@ -1308,10 +1427,9 @@ private:
         ubo.model = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
         ubo.model = glm::rotate(ubo.model, time * glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         
-        ubo.view = glm::lookAt(glm::vec3(4.0f, 4.0f, 4.0f), glm::vec3(-1.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        ubo.view = glm::lookAt(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-1.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
         ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, 10.0f);
         ubo.proj[1][1] *= -1;
-
         memcpy(uniformBuffersMappedVert[currentImage], &ubo, sizeof(ubo));
         
         UniformBufferObjectComp uboComp{};
