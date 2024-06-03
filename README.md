@@ -21,7 +21,7 @@ https://github.com/zhuzhanji/VulkanRenderer/assets/37281560/82123c9b-9060-4962-b
 
 
 
-In the above two demos, particles are drawn with GL_POINT, we can replace them with 3D models, like this rock image. Instancing is very efficient in this cenario. (57275 stones in total)
+In the above two demos, particles are drawn with GL_POINT, we can replace them with 3D models, like this rock. Instancing is very efficient in this cenario. (57275 rocks overall)
 
 <img width="378" alt="image" src="https://github.com/zhuzhanji/VulkanRenderer/assets/37281560/a29cf219-0cce-45a3-b5fa-e3c7142f003a">
 
