@@ -14,14 +14,18 @@
 https://github.com/zhuzhanji/VulkanRenderer/assets/37281560/d1f1cbfd-cfeb-466e-be80-01404251bb1f
 
 
-<img width="880" alt="image" src="https://github.com/zhuzhanji/VulkanRenderer/assets/37281560/37d78151-a888-4d1b-9e33-bc46bd306eb9">
+
+https://github.com/zhuzhanji/VulkanRenderer/assets/37281560/82123c9b-9060-4962-bad2-05e1facd5f17
+
+
+
 
 
 In the above two demos, particles are drawn with GL_POINT, we can replace them with 3D models, like this rock image. Instancing is very efficient in this cenario. (57275 stones in total)
 
 <img width="378" alt="image" src="https://github.com/zhuzhanji/VulkanRenderer/assets/37281560/a29cf219-0cce-45a3-b5fa-e3c7142f003a">
 
-<img width="791" alt="Screenshot 2024-06-03 at 11 05 36" src="https://github.com/zhuzhanji/VulkanRenderer/assets/37281560/cde23f7d-880a-4397-a1f8-e8a9e5c78bd8">
+<img width="880" alt="image" src="https://github.com/zhuzhanji/VulkanRenderer/assets/37281560/37d78151-a888-4d1b-9e33-bc46bd306eb9">
 
 
 
