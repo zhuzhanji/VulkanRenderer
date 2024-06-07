@@ -6,8 +6,13 @@
 
 4.Particles from shapes and particle instancing
 
+5.Partiles with velocity and attraction
 
 ---
+# 5.Partiles with velocity and attraction
+
+<img width="400" alt="Screenshot 2024-06-07 at 09 04 14" src="https://github.com/zhuzhanji/VulkanRenderer/assets/37281560/801f38c1-a128-4467-89fa-5a3118be5575">
+
 # 4.Particles from models and particle morphing
   * technique: compute shader, instancing, shape morphing, depth testing, model loading etc.
     
@@ -25,7 +30,7 @@ In the above two demos, particles are drawn with GL_POINT, we can replace them w
 
 <img width="378" alt="image" src="https://github.com/zhuzhanji/VulkanRenderer/assets/37281560/a29cf219-0cce-45a3-b5fa-e3c7142f003a">
 
-<img width="880" alt="image" src="https://github.com/zhuzhanji/VulkanRenderer/assets/37281560/37d78151-a888-4d1b-9e33-bc46bd306eb9">
+<img width="400" alt="image" src="https://github.com/zhuzhanji/VulkanRenderer/assets/37281560/37d78151-a888-4d1b-9e33-bc46bd306eb9">
 
 
 
