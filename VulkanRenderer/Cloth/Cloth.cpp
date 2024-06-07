@@ -400,8 +400,8 @@ public:
 
         VkDeviceSize storageBufferSize = particleBuffer.size() * sizeof(Particle);
 
-            // Staging
-            // SSBO won't be changed on the host after upload so copy to device local memory
+        // Staging
+        // SSBO won't be changed on the host after upload so copy to device local memory
 
         // Create a staging buffer used to upload data to the gpu
         Buffer stagingBuffer = createBuffer(storageBufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
@@ -546,7 +546,7 @@ public:
         
         compute.uniformData.deltaT = fmin(lastFrameTime, 0.02f) * 0.0025f;
         
-        std::default_random_engine rndEngine(timer);
+        std::default_random_engine rndEngine((unsigned)time(nullptr));
         std::uniform_real_distribution<float> rd(1.0f, 12.0f);
         compute.uniformData.gravity.x = cos(glm::radians(-timer * 360.0f)) * (rd(rndEngine) - rd(rndEngine));
         compute.uniformData.gravity.z = sin(glm::radians(timer * 360.0f)) * (rd(rndEngine) - rd(rndEngine));
