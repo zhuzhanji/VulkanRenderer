@@ -161,6 +161,7 @@ public:
     VkFence inFlightFence;
     
     double lastFrameTime = 0.0;
+    double timer = 0.0;
     
     bool framebufferResized = false;
 
@@ -832,7 +833,7 @@ public:
     }
     
     Buffer createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties) {
-        Buffer resultBuffer;
+        Buffer resultBuffer{};
         
         VkBufferCreateInfo bufferInfo{};
         bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -857,7 +858,6 @@ public:
         }
         
         vkBindBufferMemory(device, resultBuffer.buffer, resultBuffer.bufferMemory, 0);
-        vkMapMemory(device, resultBuffer.bufferMemory, 0, size, 0, &resultBuffer.bufferMapped);
         
         resultBuffer.bufferInfo = {};
         resultBuffer.bufferInfo.buffer = resultBuffer.buffer;

@@ -411,6 +411,16 @@ inline VkViewport viewport(
     return viewport;
 }
 
+inline VkPushConstantRange pushConstantRange(VkShaderStageFlags    stageFlags,
+                                     uint32_t              offset,
+                                     uint32_t              size)
+{
+    VkPushConstantRange constantRange{};
+    constantRange.stageFlags = stageFlags;
+    constantRange.offset = offset;
+    constantRange.size = size;
+    return constantRange;
+}
     
 }
 }

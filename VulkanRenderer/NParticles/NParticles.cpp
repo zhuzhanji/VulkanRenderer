@@ -121,6 +121,8 @@ public:
             auto tEnd = std::chrono::high_resolution_clock::now();
             auto tDiff = std::chrono::duration<double, std::milli>(tEnd - tStart).count();
             lastFrameTime = tDiff / 1000.0f;
+            
+            timer += lastFrameTime;
         }
         
         vkDeviceWaitIdle(device);
@@ -149,7 +151,7 @@ public:
         // Vertex shader uniform buffer block
         VkDeviceSize bufferSize = sizeof(Graphics::uniformData);
         graphics.uniformBuffer = createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-        
+        vkMapMemory(device, graphics.uniformBuffer.bufferMemory, 0, bufferSize, 0, &graphics.uniformBuffer.bufferMapped);
         
         // Descriptor pool
         std::vector<VkDescriptorPoolSize> poolSizes = {
@@ -279,6 +281,7 @@ public:
         // Compute shader uniform buffer block
         VkDeviceSize bufferSize = sizeof(Compute::UniformData);
         compute.uniformBuffer = createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+        vkMapMemory(device, compute.uniformBuffer.bufferMemory, 0, bufferSize, 0, &compute.uniformBuffer.bufferMapped);
         
         // Create compute pipeline
         // Compute pipelines are created separate from graphics pipelines even if they use the same queue (family index)
@@ -616,15 +619,15 @@ public:
 
 }
 
-int main() {
-    vks::NParticles app;
-
-    try {
-        app.run();
-    } catch (const std::exception& e) {
-        std::cerr << e.what() << std::endl;
-        return EXIT_FAILURE;
-    }
-
-    return EXIT_SUCCESS;
-}
+//int main() {
+//    vks::NParticles app;
+//
+//    try {
+//        app.run();
+//    } catch (const std::exception& e) {
+//        std::cerr << e.what() << std::endl;
+//        return EXIT_FAILURE;
+//    }
+//
+//    return EXIT_SUCCESS;
+//}
