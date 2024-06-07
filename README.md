@@ -8,7 +8,14 @@
 
 5.Partiles with velocity and attraction
 
+6.Cloth simulation in compute shader
+
 ---
+# 6.Cloth simulation in compute shader
+
+<img width="486" alt="Screenshot 2024-06-07 at 19 40 39" src="https://github.com/zhuzhanji/VulkanRenderer/assets/37281560/0fc6cea3-57bf-4427-b637-33f18733b8e7">
+
+
 # 5.Partiles with velocity and attraction
 
 <img width="400" alt="Screenshot 2024-06-07 at 09 04 14" src="https://github.com/zhuzhanji/VulkanRenderer/assets/37281560/801f38c1-a128-4467-89fa-5a3118be5575">
