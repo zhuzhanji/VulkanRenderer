@@ -13,7 +13,8 @@
 ---
 # 6.Cloth simulation in compute shader
 
-<img width="486" alt="Screenshot 2024-06-07 at 19 40 39" src="https://github.com/zhuzhanji/VulkanRenderer/assets/37281560/0fc6cea3-57bf-4427-b637-33f18733b8e7">
+<img width="400" alt="Screenshot 2024-06-07 at 19 40 39" src="https://github.com/zhuzhanji/VulkanRenderer/assets/37281560/0fc6cea3-57bf-4427-b637-33f18733b8e7">
+<img width="400" alt="Screenshot 2024-06-08 at 10 59 27" src="https://github.com/zhuzhanji/VulkanRenderer/assets/37281560/9f904751-07ab-4bff-ac5a-56a6f441b9f6">
 
 
 # 5.Particles with velocity and attraction
