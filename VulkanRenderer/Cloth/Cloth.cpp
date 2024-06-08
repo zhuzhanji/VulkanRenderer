@@ -393,7 +393,8 @@ public:
         for (uint32_t i = 0; i < cloth.gridsize.y; i++) {
             for (uint32_t j = 0; j < cloth.gridsize.x; j++) {
                 particleBuffer[i + j * cloth.gridsize.y].pos = transM * glm::vec4(dx * j, 0.0f, dy * i, 1.0f);
-                particleBuffer[i + j * cloth.gridsize.y].vel = glm::vec4(0.0f);
+                float anchor_damping = (i == 0 && (j ==0 || j == cloth.gridsize.x - 1)) ? 0.0 : 1.0;
+                particleBuffer[i + j * cloth.gridsize.y].vel = glm::vec4(0.0f, 0.0f, 0.0f, anchor_damping);
                 particleBuffer[i + j * cloth.gridsize.y].uv = glm::vec4(1.0f - du * i, dv * j, 0.0f, 0.0f);
             }
         }
@@ -540,7 +541,7 @@ public:
     void updateUniformBuffer() {
    
         graphics.uniformData.projection = glm::perspective(glm::radians(60.0f), swapChainExtent.width / (float) swapChainExtent.height, 0.1f, 512.0f);
-        graphics.uniformData.view = glm::lookAt(glm::vec3(0.0f, 0.0f, 4.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        graphics.uniformData.view = glm::lookAt(glm::vec3(0.0f, -4.0f, 4.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         
         memcpy(graphics.uniformBuffer.bufferMapped, &graphics.uniformData, sizeof(Graphics::UniformData));
         

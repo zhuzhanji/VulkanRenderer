@@ -57,7 +57,8 @@ void main()
 
 	vec3 pos = particleIn[index].pos.xyz;
 	vec3 vel = particleIn[index].vel.xyz;
-
+    float anchor_damping = particleIn[index].vel.w;
+    
 	// Spring forces from neighboring particles
 	// left
 	if (id.x > 0) {
@@ -93,11 +94,12 @@ void main()
 	}
 
 	force += (-params.damping * vel);
-
+    force *= anchor_damping;
+    
 	// Integrate
 	vec3 f = force * (1.0 / params.particleMass);
 	particleOut[index].pos = vec4(pos + vel * params.deltaT + 0.5 * f * params.deltaT * params.deltaT, 1.0);
-	particleOut[index].vel = vec4(vel + f * params.deltaT, 0.0);
+	particleOut[index].vel = vec4(vel + f * params.deltaT, anchor_damping);
 
 	// Sphere collision
 	vec3 sphereDist = particleOut[index].pos.xyz - params.spherePos.xyz;
