@@ -596,6 +596,7 @@ public:
         graphicsSubmitInfo.pCommandBuffers = &graphicsCommandBuffer[imageIndex];
         graphicsSubmitInfo.waitSemaphoreCount = 2;
         graphicsSubmitInfo.pWaitSemaphores = graphicsWaitSemaphores;
+        //pWaitSemaphores signal 取得之前不执行 pWaitDstStageMask
         graphicsSubmitInfo.pWaitDstStageMask = graphicsWaitStageMasks;
         graphicsSubmitInfo.signalSemaphoreCount = 1;
         graphicsSubmitInfo.pSignalSemaphores = graphicsSignalSemaphores;
@@ -636,15 +637,17 @@ public:
 
 }
 
-int main() {
-    vks::ComputeCloth app;
-
-    try {
-        app.run();
-    } catch (const std::exception& e) {
-        std::cerr << e.what() << std::endl;
-        return EXIT_FAILURE;
-    }
-
-    return EXIT_SUCCESS;
-}
+//int main() {
+//    vks::ComputeCloth app;
+//
+//    try {
+//
+//
+//        app.run();
+//    } catch (const std::exception& e) {
+//        std::cerr << e.what() << std::endl;
+//        return EXIT_FAILURE;
+//    }
+//
+//    return EXIT_SUCCESS;
+//}

@@ -421,7 +421,21 @@ inline VkPushConstantRange pushConstantRange(VkShaderStageFlags    stageFlags,
     constantRange.size = size;
     return constantRange;
 }
+
+inline VkRenderPassCreateInfo renderPassCreateInfo()
+{
+    VkRenderPassCreateInfo renderPassCreateInfo {};
+    renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    return renderPassCreateInfo;
+}
     
+inline VkFramebufferCreateInfo framebufferCreateInfo()
+{
+    VkFramebufferCreateInfo framebufferCreateInfo {};
+    framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+    return framebufferCreateInfo;
+}
+
 }
 }
 #endif /* VulkanUtil_hpp */

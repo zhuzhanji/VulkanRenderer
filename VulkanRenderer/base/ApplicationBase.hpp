@@ -13,6 +13,8 @@
 #include <vulkan/vulkan_beta.h>
 
 #define GLM_FORCE_RADIANS
+//force NDC z range to [0, 1]
+//glm comforms to OpenGL, so by default [-1, 1]
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
@@ -77,10 +79,10 @@ struct SwapChainSupportDetails {
 
 class Texture{
 public:
-    VkImage image;
-    VkDeviceMemory imageMemory;
-    VkImageView imageView;
-    VkSampler sampler;
+    VkImage image{ VK_NULL_HANDLE };
+    VkDeviceMemory imageMemory{ VK_NULL_HANDLE };
+    VkImageView imageView{ VK_NULL_HANDLE };
+    VkSampler sampler{ VK_NULL_HANDLE };
     VkDescriptorImageInfo imageInfo;
     void destroy(VkDevice device){
         vkDestroyImage(device, image, nullptr);
@@ -154,6 +156,7 @@ public:
     VkImageView depthImageView;
     
     VkRenderPass renderPass;
+    VkPipelineCache pipelineCache;
     
     VkSemaphore imageAvailableSemaphore;
     VkSemaphore renderFinishedSemaphore;
@@ -194,6 +197,7 @@ public:
         createDepthResources();
         createRenderPass();
         createFramebuffers();
+        createPipelineCache();
         createCommandPool();
         createCommandBuffers();
         createSyncObjects();
@@ -218,7 +222,7 @@ public:
     
     void cleanup() {
         cleanupSwapChain();
-        
+        vkDestroyPipelineCache(device, pipelineCache, nullptr);
         vkDestroyDescriptorPool(device, descriptorPool, nullptr);
         
         vkDestroyRenderPass(device, renderPass, nullptr);
@@ -669,9 +673,9 @@ public:
         samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
         samplerInfo.magFilter = VK_FILTER_LINEAR;
         samplerInfo.minFilter = VK_FILTER_LINEAR;
-        samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+        samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+        samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
         samplerInfo.anisotropyEnable = VK_FALSE;
         samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
         samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
@@ -749,10 +753,21 @@ public:
         VkSubpassDependency dependency{};
         dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
         dependency.dstSubpass = 0;
+        //wait for this of the src subpass
         dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
         dependency.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+        //wait on this of our pass
         dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
         dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+        
+        /*
+         https://stackoverflow.com/questions/53003217/subpass-dependencies-for-a-single-subpass-how-to
+         Normally, we would need an external dependency at the end as well since we are changing layout in finalLayout,
+           but since we are signalling a semaphore, we can rely on Vulkan's default behavior,
+           which injects an external dependency here with
+           dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+           dstAccessMask = 0. */
+        
         std::array<VkAttachmentDescription, 2> attachments = {colorAttachment, depthAttachment};
         VkRenderPassCreateInfo renderPassCreateInfo{};
         renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
@@ -792,6 +807,12 @@ public:
                 throw std::runtime_error("failed to create framebuffer!");
             }
         }
+    }
+    
+    void createPipelineCache(){
+        VkPipelineCacheCreateInfo pipelineCacheCreateInfo = {};
+        pipelineCacheCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
+        VK_CHECK_RESULT(vkCreatePipelineCache(device, &pipelineCacheCreateInfo, nullptr, &pipelineCache));
     }
     
     void createCommandPool() {

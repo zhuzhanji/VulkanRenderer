@@ -7,10 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		CD5333262C1231C3009175E0 /* CSParticleMorpher.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CD5333252C1231C3009175E0 /* CSParticleMorpher.cpp */; };
-		CD53332A2C123781009175E0 /* NParticles.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CD5333292C123781009175E0 /* NParticles.cpp */; };
 		CD53332C2C12396E009175E0 /* ApplicationBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CD53332B2C12396E009175E0 /* ApplicationBase.cpp */; };
-		CD5333302C1308B7009175E0 /* Cloth.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CD53332F2C1308B6009175E0 /* Cloth.cpp */; };
+		CDA355412C1C2ABA00F09B04 /* VolumetricLight.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CDA355402C1C2ABA00F09B04 /* VolumetricLight.cpp */; };
+		CDA355432C1CED5100F09B04 /* Cloth.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CDA355422C1CED5100F09B04 /* Cloth.cpp */; };
+		CDA355472C1E1DE300F09B04 /* NParticles.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CDA355462C1E1DE300F09B04 /* NParticles.cpp */; };
 		CDCC25012BF9368400A3AD75 /* libglfw.3.4.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CDCC25002BF9368400A3AD75 /* libglfw.3.4.dylib */; };
 		CDCC25032BF936E400A3AD75 /* libvulkan.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CDCC25022BF936E400A3AD75 /* libvulkan.1.dylib */; };
 		CDCC25052BF936EB00A3AD75 /* libvulkan.1.3.283.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CDCC25042BF936EA00A3AD75 /* libvulkan.1.3.283.dylib */; };
@@ -37,14 +37,15 @@
 /* Begin PBXFileReference section */
 		CD53331B2C10AB9F009175E0 /* ApplicationBase.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; name = ApplicationBase.hpp; path = base/ApplicationBase.hpp; sourceTree = "<group>"; };
 		CD5333242C10DA9E009175E0 /* VulkanUtil.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; name = VulkanUtil.hpp; path = base/VulkanUtil.hpp; sourceTree = "<group>"; };
-		CD5333252C1231C3009175E0 /* CSParticleMorpher.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CSParticleMorpher.cpp; sourceTree = "<group>"; };
-		CD5333292C123781009175E0 /* NParticles.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = NParticles.cpp; path = NParticles/NParticles.cpp; sourceTree = "<group>"; };
 		CD53332B2C12396E009175E0 /* ApplicationBase.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ApplicationBase.cpp; path = base/ApplicationBase.cpp; sourceTree = "<group>"; };
-		CD53332F2C1308B6009175E0 /* Cloth.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Cloth.cpp; path = Cloth/Cloth.cpp; sourceTree = "<group>"; };
+		CDA355402C1C2ABA00F09B04 /* VolumetricLight.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = VolumetricLight.cpp; path = SoftShadow/VolumetricLight.cpp; sourceTree = "<group>"; };
+		CDA355422C1CED5100F09B04 /* Cloth.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Cloth.cpp; path = Cloth/Cloth.cpp; sourceTree = "<group>"; };
+		CDA355462C1E1DE300F09B04 /* NParticles.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = NParticles.cpp; path = NParticles/NParticles.cpp; sourceTree = "<group>"; };
 		CDCC24F52BF931BB00A3AD75 /* VulkanRenderer */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = VulkanRenderer; sourceTree = BUILT_PRODUCTS_DIR; };
 		CDCC25002BF9368400A3AD75 /* libglfw.3.4.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libglfw.3.4.dylib; path = ../../../../../opt/homebrew/lib/libglfw.3.4.dylib; sourceTree = "<group>"; };
 		CDCC25022BF936E400A3AD75 /* libvulkan.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libvulkan.1.dylib; path = ../../../VulkanSDK/1.3.283.0/macOS/lib/libvulkan.1.dylib; sourceTree = "<group>"; };
 		CDCC25042BF936EA00A3AD75 /* libvulkan.1.3.283.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libvulkan.1.3.283.dylib; path = ../../../VulkanSDK/1.3.283.0/macOS/lib/libvulkan.1.3.283.dylib; sourceTree = "<group>"; };
+		CDD308562C220CD900A95E98 /* PerlinNoise.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PerlinNoise.h; path = SoftShadow/PerlinNoise.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -82,11 +83,12 @@
 			isa = PBXGroup;
 			children = (
 				CD5333242C10DA9E009175E0 /* VulkanUtil.hpp */,
-				CD5333292C123781009175E0 /* NParticles.cpp */,
-				CD53332F2C1308B6009175E0 /* Cloth.cpp */,
-				CD5333252C1231C3009175E0 /* CSParticleMorpher.cpp */,
 				CD53331B2C10AB9F009175E0 /* ApplicationBase.hpp */,
+				CDA355422C1CED5100F09B04 /* Cloth.cpp */,
+				CDA355462C1E1DE300F09B04 /* NParticles.cpp */,
 				CD53332B2C12396E009175E0 /* ApplicationBase.cpp */,
+				CDA355402C1C2ABA00F09B04 /* VolumetricLight.cpp */,
+				CDD308562C220CD900A95E98 /* PerlinNoise.h */,
 			);
 			path = VulkanRenderer;
 			sourceTree = "<group>";
@@ -158,9 +160,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CD5333302C1308B7009175E0 /* Cloth.cpp in Sources */,
-				CD53332A2C123781009175E0 /* NParticles.cpp in Sources */,
-				CD5333262C1231C3009175E0 /* CSParticleMorpher.cpp in Sources */,
+				CDA355472C1E1DE300F09B04 /* NParticles.cpp in Sources */,
+				CDA355412C1C2ABA00F09B04 /* VolumetricLight.cpp in Sources */,
+				CDA355432C1CED5100F09B04 /* Cloth.cpp in Sources */,
 				CD53332C2C12396E009175E0 /* ApplicationBase.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
