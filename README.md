@@ -10,10 +10,21 @@
 
 6.Cloth simulation in compute shader
 
+7.Volumetric light effect in Killzone: shadow fall
+
 ---
+# 7.Volumetric light effect
+
+It is a basic implementation of the Volumetric light effect in Killzone: shadow fall (Nathan Vos, GPU Pro 5). Only spotlight is implemented here. 
+
+https://github.com/zhuzhanji/VulkanRenderer/assets/37281560/69086b0f-8abc-4cff-acfa-aaa9ec7ae14e
+
+
+
 # 6.Cloth simulation in compute shader
 
-<img width="486" alt="Screenshot 2024-06-07 at 19 40 39" src="https://github.com/zhuzhanji/VulkanRenderer/assets/37281560/0fc6cea3-57bf-4427-b637-33f18733b8e7">
+<img width="400" alt="Screenshot 2024-06-07 at 19 40 39" src="https://github.com/zhuzhanji/VulkanRenderer/assets/37281560/0fc6cea3-57bf-4427-b637-33f18733b8e7">
+<img width="400" alt="Screenshot 2024-06-08 at 10 59 27" src="https://github.com/zhuzhanji/VulkanRenderer/assets/37281560/9f904751-07ab-4bff-ac5a-56a6f441b9f6">
 
 
 # 5.Particles with velocity and attraction
