@@ -19,10 +19,12 @@
  10. Dither texture
  11.3D Noise texture
  */
-#include "../base/ApplicationBase.hpp"
+
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "../base/tiny_obj_loader.h"
+
+#include "VolumetricLight.h"
 
 #include "PerlinNoise.h"
 struct Vertex{
@@ -49,167 +51,25 @@ namespace std {
 namespace vks {
 
 
-class VolumetricLight : public ApplicationBase {
-public:
-    void run() {
+
+    void VolumetricLight::run()
+    {
         initWindow();
         initVulkan();
         mainLoop();
-        cleanup();
     }
-    
-private:
-    bool displayShadowMap = false;
-    bool filterPCF = true;
-    
-    // Keep depth range as small as possible
-    // for better shadow map precision
-    float zNear = 1.0f;
-    float zFar = 96.0f;
-    
-    // Depth bias (and slope) are used to avoid shadowing artifacts
-    // Constant depth bias factor (always applied)
-    float depthBiasConstant = 3.0f;
-    // Slope depth bias factor, applied depending on polygon's slope
-    float depthBiasSlope = 2.5f;
-    
-    glm::vec3 lightPos = glm::vec3();
-    float lightFOV = 45.0f;
-    float lightOuterFOV = 48.0;
 
-    struct UniformDataScene {
-            glm::mat4 projection;
-            glm::mat4 view;
-            glm::mat4 model;
-            glm::mat4 depthBiasMVP;
-            glm::vec4 lightPos;
-            glm::vec4 lightParam;
-            glm::vec2 cutoff;
-        } uniformDataScene;
-    
-    struct UniformDataOffscreen {
-        glm::mat4 depthMVP;
-    } uniformDataOffscreen;
-    
-    struct UniformDataPrelight{
-        glm::mat4 projection;
-        glm::mat4 view;
-        glm::mat4 model;
-        glm::vec4 lightPos;
-        glm::vec3 lightdir;
-    } uniformDataPrelight;
+    void VolumetricLight::initVulkan() {
 
-    struct UniformDataPrelightFrag
-    {
-        glm::mat4 lightSpace;
-        // x = 1-far/near
-           // y = far/near
-           // z = x/far
-           // w = y/far
-        glm::vec4 ZBufferParams;
-        //w: 1/(range * range)
-        glm::vec4 mieG;
-        glm::vec4 lightColor;
-        glm::vec4 worldSpaceCameraPos;
-        glm::vec4 cameraForward;
-        // x: scattering coef, y: extinction coef
-        glm::vec4 volumetricLight;
-        //cos(35), cos(45)
-        //glm::vec4 cutoff;
-        //float planeD;
-        glm::vec4 params;
-        // x: scale, y: intensity, z: intensity offset, w: _Time
-        glm::vec4 _NoiseData;
-        // x: x velocity, y: z velocity
-        glm::vec4 _NoiseVelocity;
-    } uniformDataPrelightFrag;
-    
-    struct UniformDataGaussian{
-        glm::vec2 direction;
-        glm::vec2 texSize;
-        glm::vec4 ZBufferParams;
-    } uniformDataGaussian;
-    
-    struct {
-        vks::Buffer scene;
-        vks::Buffer offscreen;
-        vks::Buffer prelight;
-        vks::Buffer prelightFrag;
-        vks::Buffer hblur;
-        vks::Buffer vblur;
-    } uniformBuffers;
-    
-    struct {
-        VkPipeline offscreen{ VK_NULL_HANDLE };
-        // Pipeline with percentage close filtering (PCF) of the shadow map
-        VkPipeline sceneShadowPCF{ VK_NULL_HANDLE };
-        VkPipeline blit{ VK_NULL_HANDLE };
-        VkPipeline prelight{ VK_NULL_HANDLE };
-        VkPipeline gaussian{ VK_NULL_HANDLE };
-    } pipelines;
-    
-    struct {
-        VkPipelineLayout offscreen{ VK_NULL_HANDLE };            // Layout of the graphics pipeline
-        VkPipelineLayout scene{ VK_NULL_HANDLE };
-        VkPipelineLayout blit{ VK_NULL_HANDLE };
-        VkPipelineLayout prelight{ VK_NULL_HANDLE };
-        VkPipelineLayout gaussian{ VK_NULL_HANDLE };
-    }pipelineLayouts;
-    
-    
-    struct {
-            VkDescriptorSet offscreen{ VK_NULL_HANDLE };
-            VkDescriptorSet scene{ VK_NULL_HANDLE };
-            VkDescriptorSet blit{ VK_NULL_HANDLE };
-            VkDescriptorSet prelight{ VK_NULL_HANDLE };
-            VkDescriptorSet hblur{ VK_NULL_HANDLE };
-            VkDescriptorSet vblur{ VK_NULL_HANDLE };
-    } descriptorSets;
-    
-    struct{
-        VkDescriptorSetLayout offscreen{ VK_NULL_HANDLE };
-        VkDescriptorSetLayout scene{ VK_NULL_HANDLE };
-        VkDescriptorSetLayout blit{ VK_NULL_HANDLE };
-        VkDescriptorSetLayout prelight{ VK_NULL_HANDLE };
-        VkDescriptorSetLayout gaussian{ VK_NULL_HANDLE };
-    }descriptorSetLayouts;
-    
-    struct OffscreenPass {
-        int32_t width, height;
-        VkFramebuffer frameBuffer;
-        vks::Texture depth;
-        VkRenderPass renderPass;
-    } offscreenPass{};
-    
-
-
-    struct RenderPass{
-        VkRenderPass renderpass{ VK_NULL_HANDLE };
-        VkFramebuffer fbo{ VK_NULL_HANDLE };
-        Texture color;
-        Texture depth;
-    } scenePass, preLightPass, blurPass;
-    
-    VkFramebuffer vblurPassFbo{ VK_NULL_HANDLE };
-
-    struct Model{
-        Buffer indicesBuffer;
-        Buffer verticesBuffer;
-        unsigned int size;
-    } scene, coneModel;
-    
-    vks::Texture baseColor;
-    vks::Texture perlinNoiseTex;
-    
-    // 16 bits of depth is enough for such a small scene
-    const VkFormat offscreenDepthFormat{ VK_FORMAT_D16_UNORM };
-    const uint32_t shadowMapize{ 2048 };
-
-    
-public:
-    void initVulkan() {
+        
         ApplicationBase::initVulkan();
         
+        //vkCreateRenderPass2KHR = (PFN_vkCreateRenderPass2KHR)vkGetDeviceProcAddr(device, "vkCreateRenderPass2KHR");
+        //if(!vkCreateRenderPass2KHR){
+        //    cleanup();
+        //    std::cout<<"Could not get a valid function vkCreateRenderPass2KHR" << std::endl;
+        //    return;
+        //}
         loadAssets();
         createUniformBuffers();
         
@@ -219,9 +79,11 @@ public:
         createRenderPipelines();
         
         recordCommandBuffer();
+        
+    
     }
     
-    void mainLoop() {
+    void VolumetricLight::mainLoop() {
         while (!glfwWindowShouldClose(window)) {
             auto tStart = std::chrono::high_resolution_clock::now();
             
@@ -240,7 +102,7 @@ public:
         vkDeviceWaitIdle(device);
     }
     
-    void cleanup() {
+    void VolumetricLight::cleanup() {
 
         if (device) {
 
@@ -264,8 +126,8 @@ public:
             scenePass.color.destroy(device);
             scenePass.depth.destroy(device);
             blurPass.color.destroy(device);
-            //fbo.halfResolutionColor.destroy(device);
-            //fbo.halfResolutionDepth.destroy(device);
+            resolveColor.destroy(device);
+            
             
             
             vkDestroyPipeline(device, pipelines.blit, nullptr);
@@ -298,7 +160,7 @@ public:
         ApplicationBase::cleanup();
     }
     
-    void loadAssets(){
+    void VolumetricLight::loadAssets(){
         baseColor = createTextureImageFromFile("textures/viking_room.png", VK_FORMAT_R8G8B8A8_UNORM);
         
         tinyobj::attrib_t attrib;
@@ -379,7 +241,7 @@ public:
         PrepareNoiseTexture(64, 64, 64);
     }
     
-    void CreateSpotLightMesh(){
+    void VolumetricLight::CreateSpotLightMesh(){
         const int segmentCount = 16;
         
         std::vector<glm::vec3> vertices(2 + segmentCount * 3);
@@ -497,7 +359,7 @@ public:
     
     // Prepare all Vulkan resources for the 3D texture (including descriptors)
     // Does not fill the texture with data
-    void PrepareNoiseTexture(uint32_t width, uint32_t height, uint32_t depth)
+    void VolumetricLight::PrepareNoiseTexture(uint32_t width, uint32_t height, uint32_t depth)
     {
         // A 3D texture is described as width x height x depth
 
@@ -587,7 +449,7 @@ public:
         updateNoiseTexture(width, height, depth);
     }
 
-    void updateNoiseTexture(uint32_t width, uint32_t height, uint32_t depth){
+    void VolumetricLight::updateNoiseTexture(uint32_t width, uint32_t height, uint32_t depth){
         const uint32_t texMemSize = width * height * depth;
 
         uint8_t *data = new uint8_t[texMemSize];
@@ -666,7 +528,7 @@ public:
         stagingBuffer.destroy(device);
     }
     
-    void createUniformBuffers(){
+    void VolumetricLight::createUniformBuffers(){
         //update every frame, so it's host visible to allow memcpy
         uniformBuffers.offscreen = createBuffer(sizeof(uniformDataOffscreen), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
         vkMapMemory(device, uniformBuffers.offscreen.bufferMemory, 0, sizeof(uniformDataOffscreen), 0, &uniformBuffers.offscreen.bufferMapped);
@@ -688,7 +550,7 @@ public:
         
     }
     
-    void createRenderPasses(){
+    void VolumetricLight::createRenderPasses(){
         //offscreenPass.renderPass, shadowmap pass
         {
             VkRenderPassCreateInfo renderPassCreateInfo = initializers::renderPassCreateInfo();
@@ -724,6 +586,7 @@ public:
             attachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
             attachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
             attachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+            //finalLayout is the layout the attachment image subresource will be transitioned to when a render pass instance ends.
             attachmentDescription.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
             
             VkSubpassDescription subPassDescription{};
@@ -779,23 +642,34 @@ public:
         {
             VkAttachmentDescription colorAttachment{};
             colorAttachment.format = VK_FORMAT_R16G16B16A16_UNORM;
-            colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+            colorAttachment.samples = VK_SAMPLE_COUNT_4_BIT;
             colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
             colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
             colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
             colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
             colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-            colorAttachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            colorAttachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
             
             VkAttachmentDescription depthAttachment{};
             depthAttachment.format = findDepthFormat();
-            depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+            depthAttachment.samples = VK_SAMPLE_COUNT_4_BIT;
             depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
             depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
             depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
             depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
             depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-            depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+            depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+            
+            VkAttachmentDescription colorAttachmentResolve{};
+                colorAttachmentResolve.format = VK_FORMAT_R16G16B16A16_UNORM;
+                colorAttachmentResolve.samples = VK_SAMPLE_COUNT_1_BIT;
+                colorAttachmentResolve.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+                colorAttachmentResolve.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+                colorAttachmentResolve.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+                colorAttachmentResolve.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+                colorAttachmentResolve.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+                colorAttachmentResolve.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            
             
             VkAttachmentReference colorAttachmentRef{};
             colorAttachmentRef.attachment = 0;
@@ -805,11 +679,19 @@ public:
             depthAttachmentRef.attachment = 1;
             depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
             
+            VkAttachmentReference colorAttachmentResolveRef{};
+            colorAttachmentResolveRef.attachment = 2;
+            colorAttachmentResolveRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        
+            
             VkSubpassDescription subpass{};
             subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
             subpass.colorAttachmentCount = 1;
             subpass.pColorAttachments = &colorAttachmentRef;
             subpass.pDepthStencilAttachment = &depthAttachmentRef;
+            subpass.pResolveAttachments = &colorAttachmentResolveRef;
+            
+            
             VkSubpassDependency dependency[2];
             dependency[0].srcSubpass = VK_SUBPASS_EXTERNAL;
             dependency[0].dstSubpass = 0;
@@ -829,7 +711,7 @@ public:
             dependency[1].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
             dependency[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
             
-            std::array<VkAttachmentDescription, 2> attachments = {colorAttachment, depthAttachment};
+            std::array<VkAttachmentDescription, 3> attachments = {colorAttachment, depthAttachment, colorAttachmentResolve};
             VkRenderPassCreateInfo renderPassCreateInfo{};
             renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
             renderPassCreateInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
@@ -1004,7 +886,7 @@ public:
     }
 
     
-    void createFrameBuffers(){
+    void VolumetricLight::createFrameBuffers(){
         {
             //shadow pass fbo, depth only
             offscreenPass.width = shadowMapize;
@@ -1058,32 +940,39 @@ public:
         }
         
         {
-            createImage(swapChainExtent.width, swapChainExtent.height, VK_FORMAT_R16G16B16A16_UNORM, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, scenePass.color.image, scenePass.color.imageMemory);
+            createImage(swapChainExtent.width, swapChainExtent.height, VK_FORMAT_R16G16B16A16_UNORM, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, scenePass.color.image, scenePass.color.imageMemory,
+                        VK_SAMPLE_COUNT_4_BIT);
             scenePass.color.imageView = createImageView(scenePass.color.image, VK_FORMAT_R16G16B16A16_UNORM, VK_IMAGE_ASPECT_COLOR_BIT);
             scenePass.color.sampler = createTextureSampler();
-            
-            scenePass.color.imageInfo = {
-                scenePass.color.sampler,
-                scenePass.color.imageView,
-                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-            };
             
             
             VkFormat depthFormat = findDepthFormat();
             createImage(swapChainExtent.width, swapChainExtent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL,VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                scenePass.depth.image, scenePass.depth.imageMemory);
+                scenePass.depth.image, scenePass.depth.imageMemory,
+                        VK_SAMPLE_COUNT_4_BIT);
             scenePass.depth.imageView = createImageView(scenePass.depth.image, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
             scenePass.depth.sampler = createTextureSampler();
             
-            scenePass.depth.imageInfo.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-            scenePass.depth.imageInfo.imageView = scenePass.depth.imageView;
-            scenePass.depth.imageInfo.sampler =   scenePass.depth.sampler;
+            
+            
+            {
+                createImage(swapChainExtent.width, swapChainExtent.height, VK_FORMAT_R16G16B16A16_UNORM, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, resolveColor.image, resolveColor.imageMemory);
+                resolveColor.imageView = createImageView(resolveColor.image, VK_FORMAT_R16G16B16A16_UNORM, VK_IMAGE_ASPECT_COLOR_BIT);
+                resolveColor.sampler = createTextureSampler();
+                
+                resolveColor.imageInfo = {
+                    resolveColor.sampler,
+                    resolveColor.imageView,
+                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+                };
+                
+            }
         
             
-            std::array<VkImageView, 2> attachments = {scenePass.color.imageView, scenePass.depth.imageView};
+            std::array<VkImageView, 3> attachments = {scenePass.color.imageView, scenePass.depth.imageView, resolveColor.imageView};
             VkFramebufferCreateInfo framebufferCreateInfo = initializers::framebufferCreateInfo();
             framebufferCreateInfo.renderPass = scenePass.renderpass;
-            framebufferCreateInfo.attachmentCount = 2;
+            framebufferCreateInfo.attachmentCount = attachments.size();
             framebufferCreateInfo.pAttachments = attachments.data();
             framebufferCreateInfo.width = swapChainExtent.width;
             framebufferCreateInfo.height = swapChainExtent.height;
@@ -1174,7 +1063,7 @@ public:
         }
     }
     
-    void createDescriptorsets(){
+    void VolumetricLight::createDescriptorsets(){
         std::vector<VkDescriptorPoolSize> poolSize = {
             initializers::descriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 6),
             initializers::descriptorPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 12)
@@ -1247,7 +1136,7 @@ public:
             std::vector<VkWriteDescriptorSet> writeDescriptorSets = {
                 vks::initializers::writeDescriptorSet(descriptorSets.prelight, 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, nullptr, &uniformBuffers.prelight.bufferInfo),
                 vks::initializers::writeDescriptorSet(descriptorSets.prelight, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &offscreenPass.depth.imageInfo, nullptr),
-                vks::initializers::writeDescriptorSet(descriptorSets.prelight, 2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &scenePass.depth.imageInfo, nullptr),
+                vks::initializers::writeDescriptorSet(descriptorSets.prelight, 2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &resolveColor.imageInfo, nullptr),
                 vks::initializers::writeDescriptorSet(descriptorSets.prelight, 3, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, nullptr, &uniformBuffers.prelightFrag.bufferInfo),
                 vks::initializers::writeDescriptorSet(descriptorSets.prelight, 4, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &perlinNoiseTex.imageInfo, nullptr)
             };
@@ -1271,14 +1160,14 @@ public:
             
             std::vector<VkWriteDescriptorSet> writeDescriptorSets = {
                 vks::initializers::writeDescriptorSet(descriptorSets.hblur, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &preLightPass.color.imageInfo, nullptr),
-                vks::initializers::writeDescriptorSet(descriptorSets.hblur, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &scenePass.depth.imageInfo, nullptr),
+                vks::initializers::writeDescriptorSet(descriptorSets.hblur, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &resolveColor.imageInfo, nullptr),
                 vks::initializers::writeDescriptorSet(descriptorSets.hblur, 2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, nullptr, &uniformBuffers.hblur.bufferInfo),
             };
             vkUpdateDescriptorSets(device, static_cast<uint32_t>(writeDescriptorSets.size()), writeDescriptorSets.data(), 0, nullptr);
             
             writeDescriptorSets = {
                 vks::initializers::writeDescriptorSet(descriptorSets.vblur, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &blurPass.color.imageInfo, nullptr),
-                vks::initializers::writeDescriptorSet(descriptorSets.vblur, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &scenePass.depth.imageInfo, nullptr),
+                vks::initializers::writeDescriptorSet(descriptorSets.vblur, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &resolveColor.imageInfo, nullptr),
                 vks::initializers::writeDescriptorSet(descriptorSets.vblur, 2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, nullptr, &uniformBuffers.vblur.bufferInfo),
             };
             vkUpdateDescriptorSets(device, static_cast<uint32_t>(writeDescriptorSets.size()), writeDescriptorSets.data(), 0, nullptr);
@@ -1323,14 +1212,14 @@ public:
             
             VK_CHECK_RESULT(vkAllocateDescriptorSets(device, &allocInfo, &descriptorSets.blit));
             std::vector<VkWriteDescriptorSet> writeDescriptorSets = {
-                vks::initializers::writeDescriptorSet(descriptorSets.blit, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &scenePass.color.imageInfo, nullptr),
+                vks::initializers::writeDescriptorSet(descriptorSets.blit, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &resolveColor.imageInfo, nullptr),
                 vks::initializers::writeDescriptorSet(descriptorSets.blit, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &preLightPass.color.imageInfo, nullptr)
             };
             vkUpdateDescriptorSets(device, static_cast<uint32_t>(writeDescriptorSets.size()), writeDescriptorSets.data(), 0, nullptr);
         }
     }
     
-    void createRenderPipelines(){
+    void VolumetricLight::createRenderPipelines(){
         {
             VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = initializers::pipelineLayoutCreateInfo(1, &descriptorSetLayouts.offscreen);
             /*
@@ -1459,8 +1348,11 @@ public:
         pipelineCreateInfo.layout = pipelineLayouts.scene;
         pipelineCreateInfo.renderPass = scenePass.renderpass;
 
+        multisampleState.rasterizationSamples = VK_SAMPLE_COUNT_4_BIT;
+        
         VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, pipelineCache, 1, &pipelineCreateInfo, nullptr, &pipelines.sceneShadowPCF));
   
+        multisampleState.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
         shaderStages = {
             loadShader("shaders/VolumetricLight/quad.vert.spv", VK_SHADER_STAGE_VERTEX_BIT),
             loadShader("shaders/VolumetricLight/quad.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT)
@@ -1506,13 +1398,8 @@ public:
   */
     }
     
-
     
-    void addComputeToComputeBarriers(VkCommandBuffer commandBuffer)
-    {
-    }
-    
-    void recordCommandBuffer() {
+    void VolumetricLight::recordCommandBuffer() {
         VkCommandBufferBeginInfo commandBufferbeginInfo = initializers::commandBufferBeginInfo();
         for(uint i = 0; i < graphicsCommandBuffer.size(); i++)
         {
@@ -1564,7 +1451,7 @@ public:
                 VkClearValue clearValues[2];
                 clearValues[1].depthStencil.depth = 1.0;
                 clearValues[1].depthStencil.stencil = 0.0;
-                clearValues[0].color = {0, 0, 0};
+                clearValues[0].color = {0, 0, 0, 1};
                 
                 VkViewport viewPort = initializers::viewport(swapChainExtent.width, swapChainExtent.height, 0, 1);
                 VkRect2D rect2D = initializers::rect2D(swapChainExtent.width, swapChainExtent.height, 0, 0);
@@ -1730,7 +1617,7 @@ public:
         }
     }
     
-    void updateUniformBuffer() {
+    void VolumetricLight::updateUniformBuffer() {
         // Animate the light source
         lightPos.x = 0.f;
         lightPos.y = 0.f;
@@ -1846,7 +1733,7 @@ public:
         memcpy(uniformBuffers.vblur.bufferMapped, &uniformDataGaussian, sizeof(UniformDataGaussian));
     }
     
-    void drawFrame() {
+    void VolumetricLight::drawFrame() {
         vkWaitForFences(device, 1, &inFlightFence, VK_TRUE, UINT64_MAX);
         
         
@@ -1904,23 +1791,9 @@ public:
         
         
     }
-    
-};
 
 
 }
 
 
 
-int main() {
-    vks::VolumetricLight app;
-
-    try {
-        app.run();
-    } catch (const std::exception& e) {
-        std::cerr << e.what() << std::endl;
-        return EXIT_FAILURE;
-    }
-
-    return EXIT_SUCCESS;
-}
