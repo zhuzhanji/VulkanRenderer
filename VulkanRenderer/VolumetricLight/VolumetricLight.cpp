@@ -1628,7 +1628,7 @@ namespace vks {
         //depthProjectionMatrix = glm::ortho(-2.0f, 2.f, -2.f, 2.f, 0.1f, 2.f);
         depthProjectionMatrix[1][1] *= -1;
         
-        glm::vec3 center = {float(cos(timer)) * 1.2 + lightPos.x, lightPos.y, 0};
+        glm::vec3 center = {float(cos(timer)) * 1.2 + lightPos.x, lightPos.y - 0.2, 0};
         glm::mat4 depthViewMatrix = glm::lookAt(lightPos, center, glm::vec3(0,1,0));
         
         glm::mat4 depthModelMatrix = glm::mat4(1.0f);
