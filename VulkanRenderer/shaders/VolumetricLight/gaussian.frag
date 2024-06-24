@@ -45,7 +45,7 @@ vec4 BilateralBlur()
     vec4 centerColor = texture(mainTexSampler, uv);
     vec3 color = centerColor.xyz;
     //return float4(color, 1);
-    float centerDepth = (LinearEyeDepth(texture(cameraDepthSampler, uv).r));
+    float centerDepth = (LinearEyeDepth(texture(cameraDepthSampler, uv).w));
 
     float weightSum = 0;
 
@@ -58,7 +58,7 @@ vec4 BilateralBlur()
     {
         vec2 offset = (direction * i) / ubo.texSize;
         vec3 sampleColor = texture(mainTexSampler, uv + offset).rgb;
-        float sampleDepth = LinearEyeDepth(texture(cameraDepthSampler, uv + offset).r);
+        float sampleDepth = LinearEyeDepth(texture(cameraDepthSampler, uv + offset).w);
 
         float depthDiff = abs(centerDepth - sampleDepth);
         float dFactor = depthDiff * BLUR_DEPTH_FACTOR;
@@ -75,7 +75,7 @@ vec4 BilateralBlur()
     {
         vec2 offset = (direction * i) / ubo.texSize;
         vec3 sampleColor = texture(mainTexSampler, uv + offset).rgb;
-        float sampleDepth = LinearEyeDepth(texture(cameraDepthSampler, uv + offset).r);
+        float sampleDepth = LinearEyeDepth(texture(cameraDepthSampler, uv + offset).w);
 
         float depthDiff = abs(centerDepth - sampleDepth);
         float dFactor = depthDiff * BLUR_DEPTH_FACTOR;

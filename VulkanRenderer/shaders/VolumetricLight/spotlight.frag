@@ -207,7 +207,7 @@ void main()
 {
     
     // read depth and reconstruct world position
-    float depth = texture(cameraDepth, uv).r;
+    float depth = texture(cameraDepth, uv).w;
 
     vec3 rayStart = ubo.worldSpaceCameraPos.xyz;
     vec3 rayEnd = wpos.xyz;

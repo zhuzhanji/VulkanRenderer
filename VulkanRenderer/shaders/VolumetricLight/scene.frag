@@ -21,7 +21,7 @@ float textureProj(vec4 shadowCoord, vec2 off)
 	if ( shadowCoord.z > 0.0 && shadowCoord.z < 1.0 && shadowCoord.w > 0)
 	{
 		float dist = texture( shadowMap, shadowCoord.xy + off ).r;
-		if ( shadowCoord.z < dist + 0.01)
+		if ( shadowCoord.z < dist + 0.03)
 		{
 			shadow = 1.0;
 		}
@@ -55,21 +55,20 @@ float filterPCF(vec4 sc)
 void main() 
 {
     vec3 inColor = texture( baseColor, uv ).rgb;
+    vec3 N = normalize(inNormal);
+    vec3 L = normalize(inLightVec);
+    vec3 V = normalize(inViewVec);
+    vec3 R = normalize(-reflect(L, N));
     
-    float theta     = dot(spotLightDir, -inLightVec);
+    float theta     = dot(spotLightDir, -L);
     float epsilon   = cutoff.x - cutoff.y;
     float intensity = clamp((theta - cutoff.y) / epsilon, 0.0, 1.0);
     
     if(theta < cutoff.y){
-        outFragColor = vec4(ambient * inColor, 1.0);
+        outFragColor = vec4(ambient * inColor, gl_FragCoord.z);
         return;
     }
 	//float shadow = filterPCF(inShadowCoord / inShadowCoord.w);
-    
-	vec3 N = normalize(inNormal);
-	vec3 L = normalize(inLightVec);
-	vec3 V = normalize(inViewVec);
-	vec3 R = normalize(-reflect(L, N));
     
 	vec3 diffuse = max(dot(N, L), 0.0) * inColor;
  
@@ -79,6 +78,6 @@ void main()
     
     //float shadowAtten = textureProj( shadowCoord, vec2(0.0, 0.0) ).r;
     float shadowAtten = filterPCF( shadowCoord ).r;
-	outFragColor = vec4(ambient * inColor + intensity * shadowAtten * diffuse, 1.0);
+	outFragColor = vec4(ambient * inColor + intensity * shadowAtten * diffuse, gl_FragCoord.z);
 
 }
