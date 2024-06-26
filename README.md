@@ -17,7 +17,7 @@
 
 It is a basic implementation of the Volumetric light effect in Killzone: shadow fall (Nathan Vos, GPU Pro 5). Only spotlight is implemented here. 
 
-Main features: volumetric light, MSAA, spot light, phong lighting, shadow map, PCF, 3D texture, Perlin noise, two pass Gaussian blur, downsampling, etc.
+Main features: volumetric light, MSAA, spot light, phong lighting, shadow map, early z test, PCF, 3D texture, Perlin noise, two pass Gaussian blur, downsampling, etc.
 
 
 
