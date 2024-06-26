@@ -906,9 +906,9 @@ namespace vks {
             samplerCreateInfo.magFilter = VK_FILTER_LINEAR;
             samplerCreateInfo.minFilter = VK_FILTER_LINEAR;
             samplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-            samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
-            samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
-            samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+            samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+            samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+            samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
             samplerCreateInfo.mipLodBias = 0.0f;
             samplerCreateInfo.maxAnisotropy = 1.0f;
             samplerCreateInfo.minLod = 0.0f;
@@ -1272,6 +1272,9 @@ namespace vks {
          VkPipeline                                       basePipelineHandle;
          int32_t                                          basePipelineIndex;
          */
+        /*
+         if a fragment shader writes to gl_FragDepth, thus changing the fragment's depth value, then early testing cannot take place, since the test must use the new computed value.
+         */
         std::vector<VkPipelineShaderStageCreateInfo> shaderStages = {
             loadShader("shaders/VolumetricLight/offscreen.vert.spv", VK_SHADER_STAGE_VERTEX_BIT)
         };
@@ -1627,8 +1630,9 @@ namespace vks {
         glm::mat4 depthProjectionMatrix = glm::perspective(lightFOV, 1.0f, 0.1f, 3.0f);
         //depthProjectionMatrix = glm::ortho(-2.0f, 2.f, -2.f, 2.f, 0.1f, 2.f);
         depthProjectionMatrix[1][1] *= -1;
+    
         
-        glm::vec3 center = {float(cos(timer)) * 1.2 + lightPos.x, lightPos.y - 0.2, 0};
+        glm::vec3 center = {float(cos(timer) * 1.2) + lightPos.x, lightPos.y - 0.2, 0};
         glm::mat4 depthViewMatrix = glm::lookAt(lightPos, center, glm::vec3(0,1,0));
         
         glm::mat4 depthModelMatrix = glm::mat4(1.0f);

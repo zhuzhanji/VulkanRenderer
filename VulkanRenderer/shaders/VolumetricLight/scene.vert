@@ -35,9 +35,9 @@ void main()
     outViewVec = -pos.xyz;			
 
 	outShadowCoord = ( ubo.lightSpace * ubo.model ) * vec4(inPos, 1.0);
-    //outShadowCoord /= outShadowCoord.w;
-    //outShadowCoord.xy = outShadowCoord.xy * 0.5 + 0.5;
-    //outShadowCoord.y = 1.0 - outShadowCoord.y;
+    outShadowCoord /= outShadowCoord.w;
+    outShadowCoord.xy = outShadowCoord.xy * 0.5 + 0.5;
+
     uv = inUV;
     outLightAxis = ubo.lightAxis.xyz;
     cutoff = ubo.cutoff;

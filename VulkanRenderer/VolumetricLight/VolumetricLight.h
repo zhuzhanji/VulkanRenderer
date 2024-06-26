@@ -169,7 +169,7 @@ private:
     
     // 16 bits of depth is enough for such a small scene
     const VkFormat offscreenDepthFormat{ VK_FORMAT_D16_UNORM };
-    const uint32_t shadowMapize{ 2048 };
+    const uint32_t shadowMapize{ 1024 };
     
     //PFN_vkCreateRenderPass2KHR vkCreateRenderPass2KHR {VK_NULL_HANDLE};
 public:

@@ -14,14 +14,19 @@ layout (location = 6) in vec2 cutoff;
 layout (location = 0) out vec4 outFragColor;
 
 #define ambient 0.1
+#define OFFSET 0.001
 
 float textureProj(vec4 shadowCoord, vec2 off)
 {
+    vec3 N = normalize(inNormal);
+    vec3 L = normalize(inLightVec);
+    float bias = max(0.05 * (1.0 - dot(N, L)), 0.005);
+    
 	float shadow = 0;
 	if ( shadowCoord.z > 0.0 && shadowCoord.z < 1.0 && shadowCoord.w > 0)
 	{
 		float dist = texture( shadowMap, shadowCoord.xy + off ).r;
-		if ( shadowCoord.z < dist + 0.03)
+		if ( shadowCoord.z < dist + bias)
 		{
 			shadow = 1.0;
 		}
@@ -72,12 +77,12 @@ void main()
     
 	vec3 diffuse = max(dot(N, L), 0.0) * inColor;
  
-    vec4 shadowCoord = inShadowCoord;
-    shadowCoord.xyz /= shadowCoord.w;
-    shadowCoord.xy = shadowCoord.xy * 0.5 + 0.5;
+    //vec4 shadowCoord = inShadowCoord;
+    //shadowCoord.xyz /= shadowCoord.w;
+    //shadowCoord.xy = shadowCoord.xy * 0.5 + 0.5;
     
-    //float shadowAtten = textureProj( shadowCoord, vec2(0.0, 0.0) ).r;
-    float shadowAtten = filterPCF( shadowCoord ).r;
+    //float shadowAtten = textureProj( inShadowCoord, vec2(0.0, 0.0) ).r;
+    float shadowAtten = filterPCF( inShadowCoord ).r;
 	outFragColor = vec4(ambient * inColor + intensity * shadowAtten * diffuse, gl_FragCoord.z);
 
 }
