@@ -20,7 +20,7 @@ float textureProj(vec4 shadowCoord, vec2 off)
 {
     vec3 N = normalize(inNormal);
     vec3 L = normalize(inLightVec);
-    float bias = max(0.05 * (1.0 - dot(N, L)), 0.005);
+    float bias = max(0.05 * (1.0 - dot(N, L)), 0.025);
     
 	float shadow = 0;
 	if ( shadowCoord.z > 0.0 && shadowCoord.z < 1.0 && shadowCoord.w > 0)
