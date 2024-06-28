@@ -21,6 +21,7 @@ Main features: volumetric light, MSAA, spot light, phong lighting, shadow map, e
 
 
 
+<img width="508" alt="Screenshot 2024-06-27 at 11 23 32" src="https://github.com/zhuzhanji/VulkanRenderer/assets/37281560/7b0f94e7-4d84-4d30-b0f7-081ed8bb0585">
 
 
 
